@@ -579,6 +579,45 @@ class APIConfig:
         }
 
     @staticmethod
+    def get_mem_reader_chunker_config() -> dict[str, Any]:
+        """Get document chunker configuration."""
+        backend = os.getenv("MEM_READER_CHUNKER_BACKEND", "sentence")
+        config: dict[str, Any] = {
+            "save_rawfile": os.getenv("MEM_READER_SAVE_RAWFILENODE", "true").lower() == "true",
+            "tokenizer_or_token_counter": os.getenv(
+                "MEM_READER_CHUNKER_TOKENIZER", "gpt2"
+            ),
+            "chunk_size": int(os.getenv("MEM_READER_CHUNK_SIZE", "512")),
+            "chunk_overlap": int(os.getenv("MEM_READER_CHUNK_OVERLAP", "128")),
+            "min_sentences_per_chunk": int(
+                os.getenv("MEM_READER_MIN_SENTENCES_PER_CHUNK", "1")
+            ),
+        }
+
+        if backend == "markdown":
+            config.update(
+                {
+                    "headers_to_split_on": [
+                        tuple(item)
+                        for item in json.loads(
+                            os.getenv(
+                                "MEM_READER_CHUNKER_HEADERS_TO_SPLIT_ON",
+                                '[["#", "Header 1"], ["##", "Header 2"], ["###", "Header 3"]]',
+                            )
+                        )
+                    ],
+                    "strip_headers": os.getenv(
+                        "MEM_READER_CHUNKER_STRIP_HEADERS", "true"
+                    ).lower()
+                    == "true",
+                    "recursive": os.getenv("MEM_READER_CHUNKER_RECURSIVE", "true").lower()
+                    == "true",
+                }
+            )
+
+        return {"backend": backend, "config": config}
+
+    @staticmethod
     def get_oss_config() -> dict[str, Any] | None:
         """Get OSS configuration and validate connection."""
 
@@ -634,19 +673,7 @@ class APIConfig:
                             },
                         },
                         "embedder": APIConfig.get_embedder_config(),
-                        "chunker": {
-                            "backend": "sentence",
-                            "config": {
-                                "save_rawfile": os.getenv(
-                                    "MEM_READER_SAVE_RAWFILENODE", "true"
-                                ).lower()
-                                == "true",
-                                "tokenizer_or_token_counter": "gpt2",
-                                "chunk_size": 512,
-                                "chunk_overlap": 128,
-                                "min_sentences_per_chunk": 1,
-                            },
-                        },
+                        "chunker": APIConfig.get_mem_reader_chunker_config(),
                         "chat_chunker": reader_config,
                     },
                 },
@@ -918,17 +945,7 @@ class APIConfig:
                     # Image parser LLM (requires vision model)
                     "image_parser_llm": APIConfig.get_image_parser_llm_config(),
                     "embedder": APIConfig.get_embedder_config(),
-                    "chunker": {
-                        "backend": "sentence",
-                        "config": {
-                            "save_rawfile": os.getenv("MEM_READER_SAVE_RAWFILENODE", "true").lower()
-                            == "true",
-                            "tokenizer_or_token_counter": "gpt2",
-                            "chunk_size": 512,
-                            "chunk_overlap": 128,
-                            "min_sentences_per_chunk": 1,
-                        },
-                    },
+                    "chunker": APIConfig.get_mem_reader_chunker_config(),
                     "chat_chunker": reader_config,
                     "direct_markdown_hostnames": [
                         h.strip()
@@ -1044,17 +1061,7 @@ class APIConfig:
                     # Image parser LLM (requires vision model)
                     "image_parser_llm": APIConfig.get_image_parser_llm_config(),
                     "embedder": APIConfig.get_embedder_config(),
-                    "chunker": {
-                        "backend": "sentence",
-                        "config": {
-                            "save_rawfile": os.getenv("MEM_READER_SAVE_RAWFILENODE", "true").lower()
-                            == "true",
-                            "tokenizer_or_token_counter": "gpt2",
-                            "chunk_size": 512,
-                            "chunk_overlap": 128,
-                            "min_sentences_per_chunk": 1,
-                        },
-                    },
+                    "chunker": APIConfig.get_mem_reader_chunker_config(),
                     "chat_chunker": reader_config,
                 },
             },
