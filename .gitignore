@@ -243,3 +243,6 @@ test_file_pipeline.py
 # spec
 .ai-tasks/
 openspecs/
+
+# Local CodeGraph index (do not commit)
+.codegraph/
